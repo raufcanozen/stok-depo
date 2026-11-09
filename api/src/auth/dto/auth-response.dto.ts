@@ -14,7 +14,11 @@ export class UserResponseDto {
 export class AuthResponseDto {
   /** İsteklerde "Authorization: Bearer <token>" başlığıyla gönderilecek JWT */
   accessToken: string;
-  /** Token'ın geçerlilik süresi @example '15m' */
+  /** Access token'ın geçerlilik süresi @example '15m' */
   expiresIn: string;
+  /** Access token süresi dolunca yenisini almak için kullanılır (POST /auth/refresh-token) */
+  refreshToken: string;
+  /** Refresh token'ın son geçerlilik zamanı */
+  refreshTokenExpiresAt: Date;
   user: UserResponseDto;
 }

@@ -1,7 +1,11 @@
-import {Controller, Get} from '@nestjs/common';
-import {AppService} from './app.service.js';
-import {PrismaService} from './prisma/prisma.service.js';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { AppService } from './app.service.js';
+import { Public } from './auth/decorators/public.decorator.js';
+import { PrismaService } from './prisma/prisma.service.js';
 
+@ApiTags('Sistem')
+@Public()
 @Controller()
 export class AppController {
   constructor(
