@@ -1,0 +1,203 @@
+// Stok ve Depo Yönetim Sistemi - Veritabanı şeması
+// ER diyagramı: docs/diyagramlar/README.md
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ENUMS
+
+enum Role {
+  ADMIN
+  WAREHOUSE_MANAGER
+  STAFF
+  VIEWER
+}
+
+enum MovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+enum PurchaseOrderStatus {
+  PENDING
+  APPROVED
+  RECEIVED
+  CANCELLED
+}
+
+//  USER & AUTH
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash")
+  role         Role     @default(VIEWER)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens  RefreshToken[]
+  stockMovements StockMovement[]
+  purchaseOrders PurchaseOrder[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(100)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Warehouse {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  location  String?  @db.VarChar(255)
+  capacity  Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("warehouses")
+}
+
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(150)
+  email     String?  @db.VarChar(255)
+  phone     String?  @db.VarChar(30)
+  address   String?
+  taxNumber String?  @unique @map("tax_number") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+// PRODUCT
+
+model Product {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(150)
+  sku           String   @unique @db.VarChar(50)
+  description   String?
+  categoryId    Int      @map("category_id")
+  warehouseId   Int      @map("warehouse_id")
+  stock         Int      @default(0)
+  criticalStock Int      @default(0) @map("critical_stock")
+  price         Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  category           Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  warehouse          Warehouse           @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  stockMovements     StockMovement[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@index([categoryId])
+  @@index([warehouseId])
+  @@map("products")
+}
+
+//  STOK HAREKET 
+
+model StockMovement {
+  id              Int          @id @default(autoincrement())
+  productId       Int          @map("product_id")
+  userId          Int          @map("user_id")
+  purchaseOrderId Int?         @map("purchase_order_id")
+  type            MovementType
+  quantity        Int
+  previousStock   Int          @map("previous_stock")
+  newStock        Int          @map("new_stock")
+  note            String?      @db.VarChar(255)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([purchaseOrderId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+
+
+model PurchaseOrder {
+  id           Int                 @id @default(autoincrement())
+  orderNumber  String              @unique @map("order_number") @db.VarChar(30)
+  supplierId   Int                 @map("supplier_id")
+  createdById  Int                 @map("created_by_id")
+  status       PurchaseOrderStatus @default(PENDING)
+  totalAmount  Decimal             @default(0) @map("total_amount") @db.Decimal(12, 2)
+  expectedDate DateTime?           @map("expected_date") @db.Date
+  receivedAt   DateTime?           @map("received_at")
+  note         String?
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  supplier       Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdBy      User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  items          PurchaseOrderItem[]
+  stockMovements StockMovement[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              Int      @id @default(autoincrement())
+  purchaseOrderId Int      @map("purchase_order_id")
+  productId       Int      @map("product_id")
+  quantity        Int
+  unitPrice       Decimal  @map("unit_price") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+  @@map("purchase_order_items")
+}
