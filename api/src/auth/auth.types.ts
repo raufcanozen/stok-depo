@@ -3,7 +3,7 @@ import type { Role } from '../generated/prisma/enums.js';
 
 /** Access token'ın içine yazılan bilgiler */
 export interface JwtPayload {
-  sub: number; // kullanıcı id'si ("subject")
+  sub: number; 
   email: string;
   role: Role;
 }

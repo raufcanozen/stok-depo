@@ -16,14 +16,13 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 1) Endpoint (veya controller'ı) @Public() ise kontrol etme
+    
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
     if (isPublic) return true;
 
-    // 2) Token'ı başlıktan al
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractToken(request);
     if (!token) {
