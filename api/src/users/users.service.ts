@@ -2,20 +2,42 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import bcrypt from 'bcryptjs';
 import { publicUserSelect } from '../auth/auth.service.js';
 import { UserResponseDto } from '../auth/dto/auth-response.dto.js';
+import type { Paginated } from '../common/dto/paginated-response.dto.js';
+import { toPaginated, toSkipTake } from '../common/utils/pagination.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { Role } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UserQueryDto } from './dto/user-query.dto.js';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<UserResponseDto[]> {
-    return this.prisma.user.findMany({
-      select: publicUserSelect,
-      orderBy: { id: 'asc' },
-    });
+  async findAll(query: UserQueryDto): Promise<Paginated<UserResponseDto>> {
+    const where: Prisma.UserWhereInput = {
+      role: query.role,
+      isActive: query.isActive,
+      ...(query.search && {
+        OR: [
+          { name: { contains: query.search, mode: 'insensitive' } },
+          { email: { contains: query.search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        select: publicUserSelect,
+        orderBy: { [query.sortBy]: query.order },
+        ...toSkipTake(query),
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return toPaginated(users, total, query);
   }
 
   async findOne(id: number): Promise<UserResponseDto> {

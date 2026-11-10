@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -15,9 +15,12 @@ import type { JwtPayload } from '../auth/auth.types.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UserResponseDto } from '../auth/dto/auth-response.dto.js';
+import { ApiPaginatedResponse } from '../common/decorators/api-paginated-response.decorator.js';
+import type { Paginated } from '../common/dto/paginated-response.dto.js';
 import { Role } from '../generated/prisma/enums.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UserQueryDto } from './dto/user-query.dto.js';
 import { UsersService } from './users.service.js';
 
 @ApiTags('Users')
@@ -30,10 +33,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Kullanıcıları listeleme' })
-  @ApiOkResponse({ type: [UserResponseDto] })
-  findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAll();
+  @ApiOperation({ summary: 'Kullanıcıları listeleme (sayfalı, aranabilir, filtrelenebilir)' })
+  @ApiPaginatedResponse(UserResponseDto)
+  findAll(@Query() query: UserQueryDto): Promise<Paginated<UserResponseDto>> {
+    return this.usersService.findAll(query);
   }
 
   @Get(':id')
