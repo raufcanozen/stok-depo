@@ -118,12 +118,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
     return null;
   }
-
-  /** "products_sku_key" → "sku" */
+  
   private uniqueField(cause: DbErrorCause): string {
     if (cause.constraint?.fields?.length) return cause.constraint.fields.join(', ');
     const index = cause.constraint?.index;
     if (!index) return 'benzersiz alan';
-    return index.replace(new RegExp(`^${cause.table ?? ''}_`), '').replace(/_key$/, '');
+    return index
+      .replace(new RegExp(`^${cause.table ?? ''}_`), '')
+      .replace(/_key$/, '')
+      .replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()); // tax_number → taxNumber
   }
 }
