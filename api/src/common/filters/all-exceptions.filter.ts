@@ -19,9 +19,9 @@ interface ErrorBody {
 
 type ResolvedError = Pick<ErrorBody, 'statusCode' | 'error' | 'message'>;
 
-/** Prisma 7'nin hata ayrıntılarını koyduğu yer (PostgreSQL hata kodu, kısıt adı vb.) */
 interface DbErrorCause {
   originalCode?: string;
+  originalMessage?: string;
   table?: string;
   constraint?: { index?: string; fields?: string[] };
 }
@@ -72,13 +72,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       };
     }
 
-    // 2) Veritabanı hataları
+    
     if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       const resolved = this.resolvePrisma(exception);
       if (resolved) return resolved;
     }
 
-    // 3) Beklenmeyen her şey: ayrıntıyı istemciye gösterme
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       error: 'Internal Server Error',
@@ -97,13 +96,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // PostgreSQL hata kodlarına göre (Prisma 7 bunları driverAdapterError içinde verir)
     switch (cause?.originalCode) {
-      case '23505': // unique ihlali: ör. aynı SKU ile ikinci ürün
+      case '23505':
         return {
           statusCode: HttpStatus.CONFLICT,
           error: 'Conflict',
           message: `Bu değer zaten kullanılıyor: ${this.uniqueField(cause)}`,
         };
-      case '23503': // foreign key ihlali: ör. ürünü olan kategoriyi silmek
+            case '23503': // foreign key ihlali
+        // a) Olmayan bir kayda bağlanmaya çalışmak: ör. categoryId=999 ile ürün eklemek
+        if (cause.originalMessage?.startsWith('insert or update')) {
+          return {
+            statusCode: HttpStatus.BAD_REQUEST,
+            error: 'Bad Request',
+            message: `Geçersiz ${this.foreignKeyField(cause)}: bu id ile kayıt bulunamadı`,
+          };
+        }
+        // Bağlı kayıtları olan bir kaydı silmek: ör. ürünü olan kategoriyi silmek
         return {
           statusCode: HttpStatus.CONFLICT,
           error: 'Conflict',
@@ -127,5 +135,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
       .replace(new RegExp(`^${cause.table ?? ''}_`), '')
       .replace(/_key$/, '')
       .replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()); // tax_number → taxNumber
+  }
+
+   
+  private foreignKeyField(cause: DbErrorCause): string {
+    const table = /on table "([^"]+)"/.exec(cause.originalMessage ?? '')?.[1];
+    const index = cause.constraint?.index;
+    if (!table || !index) return 'ilişki alanı';
+    return index
+      .replace(new RegExp(`^${table}_`), '')
+      .replace(/_fkey$/, '')
+      .replace(/_([a-z])/g, (_, c: string) => c.toUpperCase()); // category_id → categoryId
   }
 }
