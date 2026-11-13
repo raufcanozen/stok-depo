@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Paginated } from '../common/dto/paginated-response.dto.js';
 import { toPaginated, toSkipTake } from '../common/utils/pagination.js';
 import { Prisma } from '../generated/prisma/client.js';
@@ -21,14 +21,25 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: ProductQueryDto): Promise<Paginated<ProductResponseDto>> {
-    const where: Prisma.ProductWhereInput = query.search
-      ? {
-          OR: [
+        const { fields } = this.prisma.product;
+    // Gönderilmeyen filtre undefined kalır; Prisma undefined olan koşulları yok sayar
+    const where: Prisma.ProductWhereInput = {
+      categoryId: query.categoryId,
+      warehouseId: query.warehouseId,
+      // İki sütunu karşılaştırma: stock <= criticalStock (veya >)
+      stock:
+        query.lowStock === undefined
+          ? undefined
+          : query.lowStock
+            ? { lte: fields.criticalStock }
+            : { gt: fields.criticalStock },
+      OR: query.search
+        ? [
             { name: { contains: query.search, mode: 'insensitive' } },
             { sku: { contains: query.search, mode: 'insensitive' } },
-          ],
-        }
-      : {};
+          ]
+        : undefined,
+    };
 
     const [products, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -91,8 +102,23 @@ export class ProductsService {
     return toResponse(product);
   }
 
+    /** Stok hareketi veya sipariş kalemi olan ürün silinmez: geçmiş kayıtlar korunmalı */
   async remove(id: number): Promise<void> {
-    await this.findOne(id);
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { _count: { select: { stockMovements: true, purchaseOrderItems: true } } },
+    });
+    if (!product) {
+      throw new NotFoundException(`${id} numaralı ürün bulunamadı`);
+    }
+
+    const { stockMovements, purchaseOrderItems } = product._count;
+    if (stockMovements > 0 || purchaseOrderItems > 0) {
+      throw new ConflictException(
+        `Bu ürünün ${stockMovements} stok hareketi ve ${purchaseOrderItems} sipariş kalemi var. ` +
+          'Geçmiş kayıtlar korunduğu için silinemez.',
+      );
+    }
     await this.prisma.product.delete({ where: { id } });
   }
 }
