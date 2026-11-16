@@ -1,10 +1,11 @@
-import { Body, Controller, Param, ParseIntPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -13,6 +14,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import type { JwtPayload } from '../auth/auth.types.js';
 import { Role } from '../generated/prisma/enums.js';
+import { ProductStockResponseDto } from './dto/product-stock-response.dto.js';
 import { StockChangeDto } from './dto/stock-change.dto.js';
 import { StockMovementResponseDto } from './dto/stock-movement-response.dto.js';
 import { StockMovementsService } from './stock-movements.service.js';
@@ -21,16 +23,23 @@ import { StockMovementsService } from './stock-movements.service.js';
 @ApiTags('Stock Movements')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ description: 'Giriş yapılmamış' })
-@ApiForbiddenResponse({ description: 'Viewer stok değiştiremez' })
 @ApiNotFoundResponse({ description: 'Ürün bulunamadı' })
-@Roles(Role.ADMIN, Role.WAREHOUSE_MANAGER, Role.STAFF)
 @Controller('products/:id/stock')
 export class ProductStockController {
   constructor(private readonly stockMovementsService: StockMovementsService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Ürün stok bilgisi (giriş yapan herkes)' })
+  @ApiOkResponse({ type: ProductStockResponseDto })
+  getStock(@Param('id', ParseIntPipe) id: number): Promise<ProductStockResponseDto> {
+    return this.stockMovementsService.getProductStock(id);
+  }
+
   @Post('increase')
+  @Roles(Role.ADMIN, Role.WAREHOUSE_MANAGER, Role.STAFF)
   @ApiOperation({ summary: 'Stok artırma (giriş hareketi oluşturur)' })
   @ApiCreatedResponse({ type: StockMovementResponseDto })
+  @ApiForbiddenResponse({ description: 'Viewer stok değiştiremez' })
   increase(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: StockChangeDto,
@@ -40,8 +49,10 @@ export class ProductStockController {
   }
 
   @Post('decrease')
+  @Roles(Role.ADMIN, Role.WAREHOUSE_MANAGER, Role.STAFF)
   @ApiOperation({ summary: 'Stok azaltma (çıkış hareketi oluşturur, stok eksiye düşemez)' })
   @ApiCreatedResponse({ type: StockMovementResponseDto })
+  @ApiForbiddenResponse({ description: 'Viewer stok değiştiremez' })
   @ApiConflictResponse({ description: 'Yetersiz stok' })
   decrease(
     @Param('id', ParseIntPipe) id: number,

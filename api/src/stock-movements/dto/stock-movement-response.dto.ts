@@ -1,6 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { MovementType } from '../../generated/prisma/enums.js';
 
+export class MovementProductDto {
+  id: number;
+  name: string;
+  sku: string;
+}
+
+export class MovementUserDto {
+  id: number;
+  name: string;
+}
+
+export class MovementPurchaseOrderDto {
+  id: number;
+  orderNumber: string;
+}
+
 export class StockMovementResponseDto {
   id: number;
   productId: number;
@@ -18,6 +34,9 @@ export class StockMovementResponseDto {
   /** Hareketten sonraki stok */
   newStock: number;
   note: string | null;
+  product: MovementProductDto;
+  user: MovementUserDto;
+  purchaseOrder: MovementPurchaseOrderDto | null;
   createdAt: Date;
   updatedAt: Date;
 }
