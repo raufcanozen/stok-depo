@@ -62,7 +62,7 @@ export class CreateProductDto {
   @Min(0, { message: 'criticalStock negatif olamaz' })
   criticalStock?: number;
 
-  /** Birim fiyat (TL, en fazla 2 ondalık) @example 349.9 */
+  
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'price en fazla 2 ondalıklı bir sayı olmalı' })
   @Min(0, { message: 'price negatif olamaz' })
   @Max(99999999.99, { message: 'price en fazla 99999999.99 olabilir' })
