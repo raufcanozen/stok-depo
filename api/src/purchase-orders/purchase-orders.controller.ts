@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
@@ -22,6 +23,7 @@ import {
   PurchaseOrderDetailResponseDto,
   PurchaseOrderResponseDto,
 } from './dto/purchase-order-response.dto.js';
+import { UpdatePurchaseOrderStatusDto } from './dto/update-purchase-order-status.dto.js';
 import { PurchaseOrdersService } from './purchase-orders.service.js';
 
 @ApiTags('Purchase Orders')
@@ -57,5 +59,24 @@ export class PurchaseOrdersController {
   @ApiNotFoundResponse({ description: 'Sipariş bulunamadı' })
   findOne(@Param('id', ParseIntPipe) id: number): Promise<PurchaseOrderDetailResponseDto> {
     return this.purchaseOrdersService.findOne(id);
+  }
+
+  @Put(':id/status')
+  @Roles(Role.ADMIN, Role.WAREHOUSE_MANAGER, Role.STAFF)
+  @ApiOperation({
+    summary:
+      'Sipariş durumunu güncelleme. PENDING → APPROVED → RECEIVED, iptal: CANCELLED. ' +
+      'RECEIVED olunca stok girişi otomatik yapılır. Personel yalnızca RECEIVED yapabilir.',
+  })
+  @ApiOkResponse({ type: PurchaseOrderDetailResponseDto })
+  @ApiNotFoundResponse({ description: 'Sipariş bulunamadı' })
+  @ApiConflictResponse({ description: 'Bu durum geçişine izin verilmiyor' })
+  @ApiForbiddenResponse({ description: 'Yetki yok' })
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePurchaseOrderStatusDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<PurchaseOrderDetailResponseDto> {
+    return this.purchaseOrdersService.updateStatus(id, dto, { id: user.sub, role: user.role });
   }
 }
