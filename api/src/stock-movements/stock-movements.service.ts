@@ -100,7 +100,7 @@ export class StockMovementsService {
     };
   }
 
-  create(dto: CreateStockMovementDto, userId: number): Promise<StockMovementResponseDto> {
+  async create(dto: CreateStockMovementDto, userId: number): Promise<StockMovementResponseDto> {
     if (dto.type === MovementType.ADJUSTMENT) {
       return this.adjustStock(dto.productId, dto.quantity, dto.note, userId);
     }
