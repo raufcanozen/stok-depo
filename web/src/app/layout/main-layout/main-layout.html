@@ -1,0 +1,40 @@
+<nz-layout class="shell">
+  <!-- Geniş ekranda sabit; dar ekranda (lg altı) gizlenir ve butonla açılır -->
+  <nz-sider
+    class="sider"
+    nzTheme="light"
+    nzCollapsible
+    nzBreakpoint="lg"
+    [nzCollapsedWidth]="0"
+    [nzWidth]="220"
+  >
+    <a class="brand" routerLink="/">Stok ve Depo</a>
+    <ul nz-menu nzMode="inline">
+      @for (item of menu(); track item.link) {
+        <li nz-menu-item [routerLink]="item.link" routerLinkActive="ant-menu-item-selected">
+          <nz-icon [nzType]="item.icon" />
+          <span>{{ item.label }}</span>
+        </li>
+      }
+    </ul>
+  </nz-sider>
+
+  <nz-layout>
+    <nz-header class="header">
+      @if (auth.user(); as user) {
+        <div class="user">
+          <span class="name">{{ user.name }}</span>
+          <span class="role">{{ roleLabels[user.role] }}</span>
+        </div>
+        <button nz-button nzType="text" (click)="auth.logout()">
+          <nz-icon nzType="logout" />
+          Çıkış yap
+        </button>
+      }
+    </nz-header>
+
+    <nz-content class="content">
+      <router-outlet />
+    </nz-content>
+  </nz-layout>
+</nz-layout>

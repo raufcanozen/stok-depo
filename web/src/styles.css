@@ -1,0 +1,16 @@
+/* Uygulama geneli stiller */
+:root {
+  --ink: #111111; /* ana metin */
+  --muted: #6b6b70; /* ikincil metin */
+  --rule: #e4e4e7; /* 1px ayırıcı çizgiler */
+  --surface: #ffffff; /* kart, tablo, üst bar */
+  --background: #f7f7f8; /* sayfa zemini */
+  --accent: #002fa7; /* tek vurgu rengi (app.config.ts'teki primaryColor ile aynı) */
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--ink);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}

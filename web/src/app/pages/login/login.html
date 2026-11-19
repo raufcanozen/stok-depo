@@ -1,0 +1,35 @@
+<div class="page">
+  <nz-card class="card">
+    <h1 class="title">Stok ve Depo Yönetimi</h1>
+    <p class="subtitle">Devam etmek için giriş yapın</p>
+
+    @if (error(); as message) {
+      <nz-alert nzType="error" [nzMessage]="message" nzShowIcon class="alert" />
+    }
+
+    <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
+      <nz-form-item>
+        <nz-form-label nzFor="email">E-posta</nz-form-label>
+        <nz-form-control nzErrorTip="Geçerli bir e-posta adresi girin">
+          <nz-input-wrapper>
+            <nz-icon nzInputPrefix nzType="user" />
+            <input nz-input id="email" type="email" formControlName="email" autocomplete="username" />
+          </nz-input-wrapper>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzFor="password">Şifre</nz-form-label>
+        <nz-form-control nzErrorTip="Şifre boş olamaz">
+          <!-- nz-input-password: şifreyi göster/gizle butonu ekler -->
+          <nz-input-password>
+            <nz-icon nzInputPrefix nzType="lock" />
+            <input nz-input id="password" formControlName="password" autocomplete="current-password" />
+          </nz-input-password>
+        </nz-form-control>
+      </nz-form-item>
+
+      <button nz-button nzType="primary" nzBlock [nzLoading]="loading()">Giriş yap</button>
+    </form>
+  </nz-card>
+</div>

@@ -1,0 +1,54 @@
+.shell {
+  min-height: 100vh;
+}
+
+.sider {
+  border-right: 1px solid var(--rule);
+}
+
+.brand {
+  display: block;
+  height: 64px;
+  padding: 0 24px;
+  line-height: 64px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+
+.user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.3;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.role {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.content {
+  padding: 24px;
+}
+
+@media (max-width: 576px) {
+  .content {
+    padding: 16px;
+  }
+}

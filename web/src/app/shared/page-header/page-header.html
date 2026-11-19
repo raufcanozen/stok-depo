@@ -1,0 +1,12 @@
+<header class="header">
+  <div class="heading">
+    <span class="total">{{ total() ?? '–' }}</span>
+    <div>
+      <h1 class="title">{{ title() }}</h1>
+      <span class="unit">kayıt</span>
+    </div>
+  </div>
+  <div class="actions">
+    <ng-content />
+  </div>
+</header>
