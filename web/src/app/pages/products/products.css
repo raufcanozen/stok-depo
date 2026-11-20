@@ -1,0 +1,68 @@
+.search {
+  width: 240px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.filter {
+  width: 200px;
+}
+
+.sku {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stok kritik seviyede veya altında */
+.low {
+  color: var(--ant-error-color);
+  font-weight: 700;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.row.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+@media (max-width: 576px) {
+  .search,
+  .filter {
+    width: 100%;
+  }
+
+  .row,
+  .row.three {
+    grid-template-columns: 1fr;
+  }
+}

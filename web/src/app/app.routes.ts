@@ -15,7 +15,7 @@ export const routes: Routes = [
     component: MainLayout,
     canActivate: [authGuard],
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'categories' },
+      { path: '', pathMatch: 'full', redirectTo: 'products' },
       {
         path: 'categories',
         title: 'Kategoriler | Stok ve Depo Yönetimi',
@@ -30,6 +30,11 @@ export const routes: Routes = [
         path: 'suppliers',
         title: 'Tedarikçiler | Stok ve Depo Yönetimi',
         loadComponent: () => import('./pages/suppliers/suppliers').then((m) => m.Suppliers),
+      },
+      {
+        path: 'products',
+        title: 'Ürünler | Stok ve Depo Yönetimi',
+        loadComponent: () => import('./pages/products/products').then((m) => m.Products),
       },
     ],
   },

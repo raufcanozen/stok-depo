@@ -17,6 +17,7 @@ interface MenuItem {
 
 /** Yan menü. Her yeni sayfa için buraya bir satır eklenir. */
 const MENU: MenuItem[] = [
+  { label: 'Ürünler', icon: 'appstore', link: '/products' },
   { label: 'Kategoriler', icon: 'tags', link: '/categories' },
   { label: 'Depolar', icon: 'home', link: '/warehouses' },
   { label: 'Tedarikçiler', icon: 'shop', link: '/suppliers' },

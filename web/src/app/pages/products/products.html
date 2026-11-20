@@ -1,0 +1,226 @@
+<app-page-header title="Ürünler" [total]="total()">
+  <nz-input-wrapper class="search">
+    <nz-icon nzInputPrefix nzType="search" />
+    <input #search nz-input placeholder="Ad veya SKU ile ara" (input)="onSearch(search.value)" />
+  </nz-input-wrapper>
+  @if (canEdit) {
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <nz-icon nzType="plus" />
+      Yeni ürün
+    </button>
+  }
+</app-page-header>
+
+<!-- Filtreler -->
+<div class="filters">
+  <nz-select
+    class="filter"
+    nzPlaceHolder="Tüm kategoriler"
+    nzAllowClear
+    nzShowSearch
+    [nzOptions]="categoryOptions()"
+    [ngModel]="query().categoryId ?? null"
+    (ngModelChange)="onCategoryFilter($event)"
+  />
+  <nz-select
+    class="filter"
+    nzPlaceHolder="Tüm depolar"
+    nzAllowClear
+    nzShowSearch
+    [nzOptions]="warehouseOptions()"
+    [ngModel]="query().warehouseId ?? null"
+    (ngModelChange)="onWarehouseFilter($event)"
+  />
+  <label nz-checkbox [ngModel]="query().lowStock ?? false" (ngModelChange)="onLowStockFilter($event)">
+    Yalnızca kritik stok
+  </label>
+</div>
+
+<nz-table
+  #table
+  [nzData]="rows()"
+  [nzLoading]="loading()"
+  [nzFrontPagination]="false"
+  [nzTotal]="total() ?? 0"
+  [nzPageIndex]="query().page"
+  [nzPageSize]="query().limit"
+  nzShowSizeChanger
+  [nzScroll]="{ x: '960px' }"
+  (nzPageIndexChange)="onPageChange($event)"
+  (nzPageSizeChange)="onPageSizeChange($event)"
+>
+  <thead>
+    <tr>
+      <th nzWidth="140px" [nzSortFn]="true" (nzSortOrderChange)="onSort('sku', $event)">SKU</th>
+      <th [nzSortFn]="true" (nzSortOrderChange)="onSort('name', $event)">Ad</th>
+      <th nzWidth="150px">Kategori</th>
+      <th nzWidth="150px">Depo</th>
+      <th
+        nzAlign="right"
+        nzWidth="120px"
+        [nzSortFn]="true"
+        (nzSortOrderChange)="onSort('stock', $event)"
+      >
+        Stok
+      </th>
+      <th
+        nzAlign="right"
+        nzWidth="130px"
+        [nzSortFn]="true"
+        (nzSortOrderChange)="onSort('price', $event)"
+      >
+        Fiyat
+      </th>
+      @if (canEdit) {
+        <th nzWidth="170px" nzRight>İşlemler</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @for (product of table.data; track product.id) {
+      <tr>
+        <td class="sku">{{ product.sku }}</td>
+        <td class="name">{{ product.name }}</td>
+        <td class="muted">{{ product.category.name }}</td>
+        <td class="muted">{{ product.warehouse.name }}</td>
+        <td nzAlign="right" class="number">
+          <span [class.low]="isLowStock(product)">{{ product.stock | number }}</span>
+          <div class="muted small">kritik: {{ product.criticalStock | number }}</div>
+        </td>
+        <td nzAlign="right" class="number">
+          {{ product.price | currency: 'TRY' : 'symbol-narrow' : '1.2-2' }}
+        </td>
+        @if (canEdit) {
+          <td nzRight>
+            <button nz-button nzType="link" nzSize="small" (click)="openEdit(product)">
+              Düzenle
+            </button>
+            @if (canDelete) {
+              <button
+                nz-button
+                nzType="link"
+                nzDanger
+                nzSize="small"
+                nz-popconfirm
+                [nzPopconfirmTitle]="'&quot;' + product.name + '&quot; silinsin mi?'"
+                nzOkText="Sil"
+                nzCancelText="Vazgeç"
+                (nzOnConfirm)="remove(product)"
+              >
+                Sil
+              </button>
+            }
+          </td>
+        }
+      </tr>
+    }
+  </tbody>
+</nz-table>
+
+<nz-modal
+  [nzVisible]="modalOpen()"
+  [nzTitle]="editing() ? 'Ürünü düzenle' : 'Yeni ürün'"
+  nzOkText="Kaydet"
+  nzCancelText="Vazgeç"
+  [nzOkLoading]="saving()"
+  [nzWidth]="640"
+  (nzOnOk)="save()"
+  (nzOnCancel)="closeModal()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="save()">
+      <div class="row">
+        <nz-form-item>
+          <nz-form-label nzFor="name" nzRequired>Ad</nz-form-label>
+          <nz-form-control nzErrorTip="Ad zorunlu, en fazla 150 karakter">
+            <input nz-input id="name" formControlName="name" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzFor="sku" nzRequired>SKU (stok kodu)</nz-form-label>
+          <nz-form-control nzErrorTip="Harf, rakam ve tek tire (ör. MOUSE-001)">
+            <input nz-input id="sku" formControlName="sku" (input)="upperSku()" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div class="row">
+        <nz-form-item>
+          <nz-form-label nzFor="categoryId" nzRequired>Kategori</nz-form-label>
+          <nz-form-control nzErrorTip="Kategori seçin">
+            <nz-select
+              nzId="categoryId"
+              formControlName="categoryId"
+              nzShowSearch
+              nzPlaceHolder="Seçin"
+              [nzOptions]="categoryOptions()"
+            />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzFor="warehouseId" nzRequired>Depo</nz-form-label>
+          <nz-form-control nzErrorTip="Depo seçin">
+            <nz-select
+              nzId="warehouseId"
+              formControlName="warehouseId"
+              nzShowSearch
+              nzPlaceHolder="Seçin"
+              [nzOptions]="warehouseOptions()"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div class="row three">
+        <nz-form-item>
+          <nz-form-label nzFor="price" nzRequired>Fiyat (₺)</nz-form-label>
+          <nz-form-control nzErrorTip="Fiyat zorunlu, 0 veya üstü">
+            <nz-input-number
+              id="price"
+              formControlName="price"
+              [nzMin]="0"
+              [nzMax]="99999999.99"
+              [nzPrecision]="2"
+              class="full-width"
+            />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzFor="criticalStock">Kritik stok</nz-form-label>
+          <nz-form-control nzErrorTip="0 veya üstü">
+            <nz-input-number
+              id="criticalStock"
+              formControlName="criticalStock"
+              [nzMin]="0"
+              [nzPrecision]="0"
+              class="full-width"
+            />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzFor="stock">{{ editing() ? 'Mevcut stok' : 'Başlangıç stoğu' }}</nz-form-label>
+          <nz-form-control
+            nzErrorTip="0 veya üstü"
+            [nzExtra]="editing() ? 'Stok, stok giriş/çıkış ile değişir' : ''"
+          >
+            <nz-input-number
+              id="stock"
+              formControlName="stock"
+              [nzMin]="0"
+              [nzPrecision]="0"
+              class="full-width"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzFor="description">Açıklama</nz-form-label>
+        <nz-form-control nzErrorTip="En fazla 1000 karakter">
+          <textarea nz-input id="description" formControlName="description" rows="2"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <button type="submit" hidden></button>
+    </form>
+  </ng-container>
+</nz-modal>

@@ -8,6 +8,7 @@ import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { provideNzConfig } from 'ng-zorro-antd/core/config';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
+  AppstoreOutline,
   HomeOutline,
   LockOutline,
   LogoutOutline,
@@ -27,14 +28,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    // DatePipe, CurrencyPipe gibi pipe'lar Türkçe biçim kullansın
+    
     { provide: LOCALE_ID, useValue: 'tr' },
-    // Backend'e istek atmak için HttpClient. authInterceptor her isteğe token ekler.
+    
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
-    // NG-ZORRO bileşenlerinin metinleri Türkçe (tarih seçici, sayfalama vb.)
+    
     provideNzI18n(tr_TR),
     provideNzDateFnsAdapter(),
-    // Kullanılan ikonlar burada kaydedilir (yalnızca bunlar pakete eklenir)
+   
         provideNzIcons([
       UserOutline,
       LockOutline,
@@ -44,6 +45,7 @@ export const appConfig: ApplicationConfig = {
       SearchOutline,
       HomeOutline,
       ShopOutline,
+      AppstoreOutline,
     ]),
     // Ana renk (styles.css'teki --accent ile aynı). angular.json'da variable.min.css gerekir.
     provideNzConfig({ theme: { primaryColor: '#002FA7' } }),
