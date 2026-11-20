@@ -21,6 +21,16 @@ export const routes: Routes = [
         title: 'Kategoriler | Stok ve Depo Yönetimi',
         loadComponent: () => import('./pages/categories/categories').then((m) => m.Categories),
       },
+            {
+        path: 'warehouses',
+        title: 'Depolar | Stok ve Depo Yönetimi',
+        loadComponent: () => import('./pages/warehouses/warehouses').then((m) => m.Warehouses),
+      },
+      {
+        path: 'suppliers',
+        title: 'Tedarikçiler | Stok ve Depo Yönetimi',
+        loadComponent: () => import('./pages/suppliers/suppliers').then((m) => m.Suppliers),
+      },
     ],
   },
   // Bilinmeyen adresler ana sayfaya yönlenir

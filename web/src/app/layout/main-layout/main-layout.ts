@@ -16,9 +16,12 @@ interface MenuItem {
 }
 
 /** Yan menü. Her yeni sayfa için buraya bir satır eklenir. */
-const MENU: MenuItem[] = [{ label: 'Kategoriler', icon: 'tags', link: '/categories' }];
+const MENU: MenuItem[] = [
+  { label: 'Kategoriler', icon: 'tags', link: '/categories' },
+  { label: 'Depolar', icon: 'home', link: '/warehouses' },
+  { label: 'Tedarikçiler', icon: 'shop', link: '/suppliers' },
+];
 
-/** Giriş yapıldıktan sonraki tüm sayfaların çerçevesi: yan menü + üst bar + içerik */
 @Component({
   selector: 'app-main-layout',
   imports: [
@@ -37,7 +40,6 @@ export class MainLayout {
   protected readonly auth = inject(AuthService);
   protected readonly roleLabels = ROLE_LABELS;
 
-  /** Kullanıcının rolüne göre görünen menü öğeleri */
   protected readonly menu = computed(() =>
     MENU.filter((item) => !item.roles || this.auth.hasRole(...item.roles)),
   );

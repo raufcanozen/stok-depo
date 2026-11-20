@@ -1,0 +1,36 @@
+.search {
+  width: 240px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+/* E-posta ve telefon yan yana; dar ekranda alt alta */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+@media (max-width: 576px) {
+  .search {
+    width: 100%;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

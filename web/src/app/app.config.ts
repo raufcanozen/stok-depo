@@ -8,10 +8,12 @@ import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { provideNzConfig } from 'ng-zorro-antd/core/config';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import {
+  HomeOutline,
   LockOutline,
   LogoutOutline,
   PlusOutline,
   SearchOutline,
+  ShopOutline,
   TagsOutline,
   UserOutline,
 } from '@ant-design/icons-angular/icons';
@@ -33,13 +35,15 @@ export const appConfig: ApplicationConfig = {
     provideNzI18n(tr_TR),
     provideNzDateFnsAdapter(),
     // Kullanılan ikonlar burada kaydedilir (yalnızca bunlar pakete eklenir)
-    provideNzIcons([
+        provideNzIcons([
       UserOutline,
       LockOutline,
       LogoutOutline,
       TagsOutline,
       PlusOutline,
       SearchOutline,
+      HomeOutline,
+      ShopOutline,
     ]),
     // Ana renk (styles.css'teki --accent ile aynı). angular.json'da variable.min.css gerekir.
     provideNzConfig({ theme: { primaryColor: '#002FA7' } }),

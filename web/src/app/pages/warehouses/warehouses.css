@@ -1,0 +1,25 @@
+.search {
+  width: 240px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 576px) {
+  .search {
+    width: 100%;
+  }
+}
