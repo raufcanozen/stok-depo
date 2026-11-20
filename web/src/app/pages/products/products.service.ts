@@ -15,6 +15,9 @@ export class ProductsService {
     return this.http.get<Paginated<Product>>(URL, { params: toParams(query) });
   }
 
+  get(id: number): Observable<Product> {
+    return this.http.get<Product>(`${URL}/${id}`);
+  }
   create(input: ProductInput): Observable<Product> {
     return this.http.post<Product>(URL, input);
   }

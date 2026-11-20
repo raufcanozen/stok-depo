@@ -17,6 +17,9 @@ import {
   ShopOutline,
   TagsOutline,
   UserOutline,
+  ArrowLeftOutline,
+  EditOutline,
+  MinusOutline,
 } from '@ant-design/icons-angular/icons';
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { routes } from './app.routes';
@@ -46,6 +49,9 @@ export const appConfig: ApplicationConfig = {
       HomeOutline,
       ShopOutline,
       AppstoreOutline,
+      ArrowLeftOutline,
+      EditOutline,
+      MinusOutline,
     ]),
     // Ana renk (styles.css'teki --accent ile aynı). angular.json'da variable.min.css gerekir.
     provideNzConfig({ theme: { primaryColor: '#002FA7' } }),

@@ -80,7 +80,9 @@
     @for (product of table.data; track product.id) {
       <tr>
         <td class="sku">{{ product.sku }}</td>
-        <td class="name">{{ product.name }}</td>
+                <td class="name">
+          <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
+        </td>
         <td class="muted">{{ product.category.name }}</td>
         <td class="muted">{{ product.warehouse.name }}</td>
         <td nzAlign="right" class="number">

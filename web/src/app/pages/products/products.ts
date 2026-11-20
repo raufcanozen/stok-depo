@@ -7,6 +7,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import {RouterLink} from'@angular/router';
 import { forkJoin } from 'rxjs';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -37,6 +38,7 @@ const SKU_PATTERN = /^[A-Z0-9]+(-[A-Z0-9]+)*$/;
     DecimalPipe,
     FormsModule,
     ReactiveFormsModule,
+    RouterLink,
     NzButtonModule,
     NzCheckboxModule,
     NzFormModule,

@@ -36,6 +36,12 @@ export const routes: Routes = [
         title: 'Ürünler | Stok ve Depo Yönetimi',
         loadComponent: () => import('./pages/products/products').then((m) => m.Products),
       },
+            {
+        path: 'products/:id',
+        title: 'Ürün detayı | Stok ve Depo Yönetimi',
+        loadComponent: () =>
+          import('./pages/product-detail/product-detail').then((m) => m.ProductDetail),
+      },
     ],
   },
   // Bilinmeyen adresler ana sayfaya yönlenir

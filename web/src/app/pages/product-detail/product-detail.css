@@ -1,0 +1,124 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  color: var(--muted);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 20px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.sku {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.title {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+/* Stok sayısı sayfanın en büyük öğesi (liste sayfalarındaki kayıt sayısı gibi) */
+.stock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--accent);
+}
+
+.stock-value {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock-unit {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stock.low,
+.stock.low strong {
+  color: var(--ant-error-color);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+nz-descriptions {
+  margin-top: 20px;
+  background: var(--surface);
+}
+
+.actions + nz-descriptions {
+  margin-top: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 32px 0 12px;
+  padding-top: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  border-top: 1px solid var(--rule);
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Giriş mavi, çıkış kırmızı */
+.change {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.change.out {
+  color: var(--ant-error-color);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.loading {
+  padding: 64px;
+  text-align: center;
+}
+
+@media (max-width: 576px) {
+  .stock {
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,151 @@
+<a routerLink="/products" class="back">
+  <nz-icon nzType="arrow-left" />
+  Ürünler
+</a>
+
+@if (notFound()) {
+  <nz-result nzStatus="404" nzTitle="Ürün bulunamadı" nzSubTitle="Silinmiş veya hiç var olmamış olabilir.">
+    <div nz-result-extra>
+      <a nz-button nzType="primary" routerLink="/products">Ürün listesine dön</a>
+    </div>
+  </nz-result>
+} @else if (product(); as p) {
+  <!-- Başlık: solda ürün, sağda büyük stok sayısı -->
+  <header class="header">
+    <div>
+      <div class="sku">{{ p.sku }}</div>
+      <h1 class="title">{{ p.name }}</h1>
+    </div>
+    <div class="stock" [class.low]="isLowStock()">
+      <span class="stock-value">{{ p.stock | number }}</span>
+      <span class="stock-unit">
+        adet stokta
+        @if (isLowStock()) {
+          <strong>· kritik seviyede</strong>
+        }
+      </span>
+    </div>
+  </header>
+
+  @if (canMove) {
+    <div class="actions">
+      <button nz-button nzType="primary" (click)="open('IN')">
+        <nz-icon nzType="plus" />
+        Stok girişi
+      </button>
+      <button nz-button (click)="open('OUT')">
+        <nz-icon nzType="minus" />
+        Stok çıkışı
+      </button>
+      @if (canAdjust) {
+        <button nz-button (click)="open('ADJUSTMENT')">
+          <nz-icon nzType="edit" />
+          Sayım düzeltmesi
+        </button>
+      }
+    </div>
+  }
+
+  <nz-descriptions nzBordered nzSize="small" [nzColumn]="{ xxl: 3, xl: 3, lg: 3, md: 2, sm: 1, xs: 1 }">
+    <nz-descriptions-item nzTitle="Kategori">{{ p.category.name }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Depo">{{ p.warehouse.name }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Fiyat">
+      {{ p.price | currency: 'TRY' : 'symbol-narrow' : '1.2-2' }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Kritik stok">{{ p.criticalStock | number }}</nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Son hareket">
+      {{ lastMovementAt() ? (lastMovementAt() | date: 'dd.MM.yyyy HH:mm') : 'Hareket yok' }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Eklenme">{{ p.createdAt | date: 'dd.MM.yyyy' }}</nz-descriptions-item>
+    @if (p.description) {
+      <nz-descriptions-item nzTitle="Açıklama" [nzSpan]="3">{{ p.description }}</nz-descriptions-item>
+    }
+  </nz-descriptions>
+
+  <h2 class="section-title">
+    Stok hareketleri <span class="count">{{ movementTotal() }}</span>
+  </h2>
+
+  <nz-table
+    #table
+    [nzData]="movements()"
+    [nzLoading]="movementsLoading()"
+    [nzFrontPagination]="false"
+    [nzTotal]="movementTotal()"
+    [nzPageIndex]="query().page"
+    [nzPageSize]="query().limit"
+    [nzScroll]="{ x: '820px' }"
+    nzSize="middle"
+    (nzPageIndexChange)="onPageChange($event)"
+  >
+    <thead>
+      <tr>
+        <th nzWidth="150px">Tarih</th>
+        <th nzWidth="160px">Tür</th>
+        <th nzAlign="right" nzWidth="100px">Değişim</th>
+        <th nzAlign="right" nzWidth="130px">Stok</th>
+        <th nzWidth="150px">Kullanıcı</th>
+        <th>Açıklama</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (m of table.data; track m.id) {
+        <tr>
+          <td class="number">{{ m.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td>{{ labels[m.type] }}</td>
+          <td nzAlign="right" class="number change" [class.out]="m.newStock < m.previousStock">
+            {{ signedChange(m) }}
+          </td>
+          <td nzAlign="right" class="number muted">{{ m.previousStock }} → {{ m.newStock }}</td>
+          <td>{{ m.user.name }}</td>
+          <td class="muted">{{ m.note ?? '' }}</td>
+        </tr>
+      }
+    </tbody>
+  </nz-table>
+
+  <nz-modal
+    [nzVisible]="mode() !== null"
+    [nzTitle]="mode() ? labels[mode()!] : ''"
+    nzOkText="Kaydet"
+    nzCancelText="Vazgeç"
+    [nzOkLoading]="saving()"
+    (nzOnOk)="save()"
+    (nzOnCancel)="close()"
+  >
+    <ng-container *nzModalContent>
+      <p class="muted">
+        {{ p.name }} · mevcut stok <strong>{{ p.stock | number }}</strong>
+      </p>
+      <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="save()">
+        <nz-form-item>
+          <nz-form-label nzFor="quantity" nzRequired>
+            {{ mode() === 'ADJUSTMENT' ? 'Sayımda bulunan gerçek stok' : 'Miktar' }}
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="mode() === 'ADJUSTMENT' ? '0 ile 1.000.000 arasında' : '1 ile 1.000.000 arasında'"
+            [nzExtra]="mode() === 'ADJUSTMENT' ? 'Fark otomatik hesaplanır ve kaydedilir' : ''"
+          >
+            <nz-input-number
+              id="quantity"
+              formControlName="quantity"
+              [nzMin]="mode() === 'ADJUSTMENT' ? 0 : 1"
+              [nzMax]="1000000"
+              [nzPrecision]="0"
+              class="full-width"
+            />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label nzFor="note">Açıklama</nz-form-label>
+          <nz-form-control nzErrorTip="En fazla 255 karakter">
+            <input nz-input id="note" formControlName="note" placeholder="Ör. irsaliye no, sevk yeri" />
+          </nz-form-control>
+        </nz-form-item>
+        <button type="submit" hidden></button>
+      </form>
+    </ng-container>
+  </nz-modal>
+} @else {
+  <div class="loading"><nz-spin nzSimple /></div>
+}
